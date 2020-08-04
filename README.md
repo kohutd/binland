@@ -43,13 +43,26 @@ native uint;
 native float;
 native string;
 native byte;
-native T[]; // sequence of T
-native !T[]; // sequence of !T
+native bool = uint;
 
-native bool = byte;
-native bytes {
+native []; // sequence
+native T[]; // sequence of T
+native seq = [];
+native typedSeq<T> = T[];
+
+native bytes = {
     length: uint;
     data: byte[];
+};
+
+native array {
+    length: uint;
+    items: [];
+};
+
+native list<T> {
+    length: uint;
+    items: !T[];
 };
 ```
 
@@ -60,7 +73,7 @@ type TYPE_NAME = [...TYPE_NAME| ];
 ```
 Example:
 ```
-type Array = Vector | Sequence; // `Array` can be either `Vector` or `Sequense`
+type Collection = List | Array; // `Collection` can be either `List` or `Array`
 ```
 
 #### Boxed types:
@@ -94,31 +107,20 @@ type Attribute {
 type Good {
     name: string;
     price: float;
-    attributes: Vector<Attribute>;
+    attributes: List<Attribute>;
 }
 ```
 
 #### STD types:
 There are few predefined types:
 ```
-type Vector<T> {
-    length: uint;
-    items: !T[];
-};
-
-type Sequence {
-    length: uint;
-    items: T[];
-};
-
-type Map.Entry<K, V> {
+type MapEntry<K, V> {
     key: !K;
     value: !V;
 };
 
 type Map<K, V> {
-    length: uint;
-    entries: !Map.Entry[];
+    entries: list<MapEntry>;
 };
 ```
 
@@ -154,7 +156,9 @@ crc32("getUser(id:uint):User;")
 
 **Serialization is straightforward.**
 
-Numeric types are serialized in little endian format.
+- Numeric types are serialized in little endian format.
+- If type is alias, then id only of aliased type to be serialized.
+
 
 ### Serializing types
 ```
@@ -175,15 +179,15 @@ type User {
 
 ### Serializing types with generics:
 ```
-type Vector<T> {
+type List<T> {
     length: uint;
     items: !T[];
 };
 
-// Vector<User>(2, [User(666, "David"), User(999, "Diana")])
+// List<User>(2, [User(666, "David"), User(999, "Diana")])
 // -> 856845756 2850815204 2 666 5 0 0 0 68 97 118 105 100 999 5 0 0 0 68 105 97 110 97
 // -> (
-        856845756 - Vector identifier
+        856845756 - List identifier
             (2850815204) - generic type identifier
             (2) - vector length
                 ((666) ((5) (0 0 0 68 97 118 105 100))) - !User
@@ -192,15 +196,15 @@ type Vector<T> {
 
 
 
-type Sequence {
+type Array {
     length: uint;
-    items: T[];
+    items: [];
 };
 
-// Sequence(2, [User(666, "David"), User(999, "Diana")])
+// Array(2, [User(666, "David"), User(999, "Diana")])
 // -> 856845756 2 2850815204 666 5 0 0 0 68 97 118 105 100 2850815204 999 5 0 0 0 68 105 97 110 97
 // -> (
-        2001895159 - Sequence identifier
+        2001895159 - Array identifier
             (2) - sequence length
                 (2850815204 ((666) ((5) (0 0 0 68 97 118 105 100)))) - User
                 (2850815204 ((999) ((5) (0 0 0 68 105 97 110 97))))) - User

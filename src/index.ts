@@ -1,6 +1,6 @@
 import Packer from "./Packer";
 import Unpacker from "./Unpacker";
-import {Type} from "./type";
+import {bool, byte, bytes, float, int, list, binlandMap, string, Type, uint} from "./type";
 
 export function pack(type: Type, params: any): Buffer {
     const packer = new Packer();
@@ -15,36 +15,53 @@ export function unpack(buffer: Uint8Array, type: Type) {
         .unpack(type);
 }
 
-// const Menu: Type = {
-//     id: 257,
-//     params: {
-//         id: int,
-//         name: string,
-//     }
-// } as Type;
-//
-// const Cafe: Type = {
-//     id: 256,
-//     params: {
-//         user_id: int,
-//         name: string,
-//         is_active: bool,
-//         menus: Vector(Menu),
-//     }
-// } as Type;
-//
-// const cafeBuffer = pack(Cafe, {
-//     name: "OhCafe",
-//     menus: [
-//         {
-//             id: 1,
-//             name: "WOW",
-//         }
-//     ]
-// });
-//
-// console.log("packed", cafeBuffer);
-// console.log(unpack(cafeBuffer, Cafe));
-// console.log(new Uint8Array(pack(string, "Diana")))
-//
-// console.log(crc32("Sequence{length:uint;items:T[];};"))
+const Menu: Type = {
+    name: "Menu",
+    id: 257,
+    body: {
+        id: int,
+        name: string,
+    }
+} as Type;
+
+const Cafe: Type = {
+    name: "Cafe",
+    id: 256,
+    body: {
+        user_id: int,
+        name: string,
+        is_active: bool,
+        menus: list(Menu),
+        bytes: bytes,
+        byte: byte,
+        float: float,
+        uint: uint,
+        map: binlandMap(string, string),
+    }
+} as Type;
+
+const cafeBuffer = pack(Cafe, {
+    user_id: -200,
+    name: "OhCafe",
+    byte: 255,
+    float: 3.14,
+    uint: 100,
+    menus: [
+        {
+            id: 1,
+            name: "WOW",
+        }
+    ],
+    // map: {
+    //     entries: [
+    //         {
+    //             key: "a",
+    //             value: 1,
+    //         }
+    //     ]
+    // },
+    map: new Map([["kek", "lol"]]),
+});
+
+console.log("packed", cafeBuffer);
+console.log(unpack(cafeBuffer, Cafe));

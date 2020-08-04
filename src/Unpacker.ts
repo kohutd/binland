@@ -1,5 +1,6 @@
 import {Uint8Array_UTF8} from "./UTF";
-import {bool, Byte, byte, float, int, string, Type, uint, Vector} from "./type";
+import {bool, byte, bytes, float, int, list, binlandMap, string, Type, typedSeq, uint} from "./type";
+import UnpackerError from "./UnpackerError";
 
 class Unpacker {
     buffer: Buffer;
@@ -17,7 +18,7 @@ class Unpacker {
     }
 
     bool(): boolean {
-        return Boolean(this.byte());
+        return Boolean(this.uint());
     }
 
     byte(): number {
@@ -58,37 +59,39 @@ class Unpacker {
         return result;
     }
 
-    typedVector(T: Type): any[] | Uint8Array {
-        const id = this.id();
-        const typeId = this.id();
+    bytes(): Uint8Array {
         const length = this.int();
 
-        if (id !== Vector.id) {
-            throw new Error(`Unexpected vector id. Expected: ${Vector.id}, got: ${id}`);
-        }
+        const result = this.buffer.slice(this.offset, this.offset + length);
 
-        // @ts-ignore
-        if (typeId !== T.id) {
-            throw new Error(`Unexpected vector type. Expected: ${T.id}, got: ${typeId}`);
-        }
+        this.offset += length;
 
-        let result: any[] | Uint8Array;
+        return result;
+    }
 
-        if (typeId === Byte.id) {
-            result = this.buffer.slice(this.offset, this.offset + length);
-            this.offset += length;
-        } else {
-            result = new Array(length);
+    typedSeq(T: Type, length: number): any[] {
+        let result = new Array(length);
 
-            for (let i = 0; i < length; i++) {
-                result[i] = this.unpack(T as Type, true);
-            }
+        for (let i = 0; i < length; i++) {
+            result[i] = this.unpack(T);
         }
 
         return result;
     }
 
-    unpack(type: Type, raw = false): any {
+    list(T: Type): any[] {
+        const typeId = this.id();
+        const length = this.int();
+
+        if (typeId !== T.id) {
+            throw new Error(`Unexpected list type. Expected: ${T.id}, got: ${typeId}`);
+        }
+
+        return this.typedSeq(T, length);
+    }
+
+    unpack(type: Type): any {
+
         switch (type.id) {
             case int.id:
                 return this.int();
@@ -102,30 +105,30 @@ class Unpacker {
                 return this.byte();
             case bool.id:
                 return this.bool();
-        }
-
-        if (type.id === Vector.id) {
-            return this.typedVector(type.T as Type);
-        }
-
-        if (raw) {
-            return this.rawType(type);
+            case bytes.id:
+                return this.bytes();
+            case typedSeq.id:
+                throw new UnpackerError("Cannot unpack sequence without length specified.");
+            case list.id:
+                return this.list(type.T as Type);
         }
 
         return this.type(type);
     }
 
     type(type: Type): any {
-        const id = this.id();
+        if (!type.isBare) {
+            this.id();
+        }
 
-        return this.rawType(type);
-    }
+        let result: any = {};
 
-    rawType(type: Type): any {
-        const result: any = {};
-
-        for (const [k, v] of Object.entries(type.params)) {
+        for (const [k, v] of Object.entries(type.body)) {
             result[k] = this.unpack(v as Type);
+        }
+
+        if (type.id === binlandMap.id) {
+            result = new Map(result.entries.map((entry: any) => ([entry.key, entry.value])));
         }
 
         return result;
