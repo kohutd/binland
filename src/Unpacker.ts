@@ -1,12 +1,9 @@
 import {Uint8Array_UTF8} from "./UTF";
-import {bool, byte, bytes, float, int, list, binlandMap, string, Type, typedSeq, uint} from "./type";
-import UnpackerError from "./UnpackerError";
+import {binlandMap, bool, byte, bytes, float, getTypeById, int, list, string, T, Type, uint} from "./type";
 
 class Unpacker {
     buffer: Buffer;
     offset: number;
-
-    result: any;
 
     constructor(buffer: Uint8Array) {
         this.buffer = Buffer.from(buffer);
@@ -69,16 +66,6 @@ class Unpacker {
         return result;
     }
 
-    typedSeq(T: Type, length: number): any[] {
-        let result = new Array(length);
-
-        for (let i = 0; i < length; i++) {
-            result[i] = this.unpack(T);
-        }
-
-        return result;
-    }
-
     list(T: Type): any[] {
         const typeId = this.id();
         const length = this.int();
@@ -90,8 +77,13 @@ class Unpacker {
         return this.typedSeq(T, length);
     }
 
-    unpack(type: Type): any {
+    array(): any[] {
+        const length = this.int();
 
+        return this.typedSeq(T, length);
+    }
+
+    unpack(type: Type): any {
         switch (type.id) {
             case int.id:
                 return this.int();
@@ -107,10 +99,8 @@ class Unpacker {
                 return this.bool();
             case bytes.id:
                 return this.bytes();
-            case typedSeq.id:
-                throw new UnpackerError("Cannot unpack sequence without length specified.");
             case list.id:
-                return this.list(type.T as Type);
+                return this.list(type.body.items.generics[0]);
         }
 
         return this.type(type);
@@ -118,7 +108,11 @@ class Unpacker {
 
     type(type: Type): any {
         if (!type.isBare) {
-            this.id();
+            const id = this.id();
+
+            if (type.id === T.id) {
+                type = getTypeById(id);
+            }
         }
 
         let result: any = {};
@@ -129,6 +123,16 @@ class Unpacker {
 
         if (type.id === binlandMap.id) {
             result = new Map(result.entries.map((entry: any) => ([entry.key, entry.value])));
+        }
+
+        return result;
+    }
+
+    protected typedSeq(T: Type, length: number): any[] {
+        let result = new Array(length);
+
+        for (let i = 0; i < length; i++) {
+            result[i] = this.unpack(T);
         }
 
         return result;

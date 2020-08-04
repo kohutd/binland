@@ -1,4 +1,4 @@
-import {bare, bool, byte, bytes, float, int, list, binlandMap, string, Type, typedSeq, uint} from "./type";
+import {array, bare, binlandMap, bool, byte, bytes, float, int, list, notBare, string, Type, uint} from "./type";
 import {UTF8_Uint8Array} from "./UTF";
 
 class Packer {
@@ -107,16 +107,14 @@ class Packer {
             this.id(type.id);
         }
 
-        for (const [k, v] of Object.entries(type.body)) {
-            this.pack(v as Type, params[k]);
+        if (type.generics && type.generics.length) {
+            for (const generic of type.generics) {
+                this.id(generic.id);
+            }
         }
 
-        return this;
-    }
-
-    typedSeq(T: Type, items: any[]) {
-        for (const item of items) {
-            this.pack(T, item);
+        for (const [k, v] of Object.entries(type.body)) {
+            this.pack(v as Type, params[k]);
         }
 
         return this;
@@ -131,7 +129,21 @@ class Packer {
 
         this.id(T.id);
         this.uint(items.length);
-        this.typedSeq(T, items);
+        this.seq(T, items);
+
+        return this;
+    }
+
+    array(items: any[]) {
+        if (!Array.isArray(items)) {
+            items = [];
+        }
+
+        this.id(items.length);
+
+        for (const item of items) {
+            this.pack(notBare(item["@type"]), item);
+        }
 
         return this;
     }
@@ -152,10 +164,10 @@ class Packer {
                 return this.bool(value);
             case bytes.id:
                 return this.bytes(value);
-            case typedSeq.id:
-                return this.typedSeq(T.T as Type, value);
             case list.id:
-                return this.list(T.T as Type, value);
+                return this.list(T.body.items.generics[0], value);
+            case array.id:
+                return this.array(value);
         }
 
         if (T.id === binlandMap.id) {
@@ -167,6 +179,14 @@ class Packer {
         }
 
         return this.type(T, value);
+    }
+
+    protected seq(T: Type, items: any[]) {
+        for (const item of items) {
+            this.pack(T, item);
+        }
+
+        return this;
     }
 
     protected writeBuffer(buffer: Uint8Array) {

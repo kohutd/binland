@@ -36,7 +36,9 @@ crc32("Vector<T>{length:uint;items:!T[];};")
 There are few native types declared.
 
 ```
-native T; // generic type
+sugar T[]; // sequence of T
+
+native T; // type
 native !T; // same as T but (todo: describe but) upd: but identifier is not saved during serialization, exists to reduce serialization size
 native int;
 native uint;
@@ -45,11 +47,6 @@ native string;
 native byte;
 native bool = uint;
 
-native []; // sequence
-native T[]; // sequence of T
-native seq = [];
-native typedSeq<T> = T[];
-
 native bytes {
     length: uint;
     data: byte[];
@@ -57,7 +54,7 @@ native bytes {
 
 native array {
     length: uint;
-    items: [];
+    items: T[];
 };
 
 native list<T> {
@@ -110,6 +107,21 @@ type Good {
 }
 ```
 
+#### Generic types:
+```
+// the following is not a generic. "T" here applies to any type
+type Array {
+    length: uint;
+    length: T[];
+}
+
+// but this following is a generic. "T" here applies to type was passed
+type Vector<T> {
+    length: uint;
+    items: T[];
+};
+```
+
 #### STD types:
 There are few predefined types:
 ```
@@ -119,7 +131,7 @@ type MapEntry<K, V> {
 };
 
 type Map<K, V> {
-    entries: list<MapEntry<K, V>>;
+    entries: list<MapEntry<!K, !V>>;
 };
 ```
 

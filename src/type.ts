@@ -1,14 +1,14 @@
 import crc32 from "./crc32";
 
 export interface Type {
-    name: string | null;
     id: number;
     body: Type | Type[] | any;
 
-    T: Type | null;
-    isBare: boolean | null;
-    isNative: boolean | null;
-    isAlias: boolean | null;
+    name: string | undefined;
+    generics: Type[] | undefined;
+    isBare: boolean | undefined;
+    isNative: boolean | undefined;
+    isAlias: boolean | undefined;
 }
 
 export function bare(T: Type) {
@@ -26,6 +26,12 @@ export function notBare(T: Type) {
 
     return {...T, isBare: false};
 }
+
+export const T = {
+    id: crc32("T;"),
+    isNative: true,
+    isBare: false,
+} as Type;
 
 export const int = {
     id: crc32("int;"),
@@ -69,51 +75,36 @@ export const bytes = {
     isBare: true,
 } as Type;
 
-export const seq: Type = {
-    id: crc32("seq=[];"),
+export const array = {
+    id: crc32("array{length:uint;items:T[];};"),
+    body: {
+        length: uint,
+        items: seq(notBare(T)),
+    },
     isNative: true,
     isBare: true,
 } as Type;
 
-export function typedSeq(T: Type): Type {
+export function seq(T: Type): Type {
     return {
-        id: typedSeq.id,
+        id: seq.id,
         body: null,
-        T,
+        generics: [T],
         isNative: true,
         isBare: true,
     } as Type;
 }
 
-typedSeq.id = crc32("typedSeq<T>=T[];");
-
-export function array(T: Type): Type {
-    T = notBare(T);
-
-    return {
-        id: array.id,
-        body: {
-            length: uint,
-            items: seq,
-        },
-        T,
-        isNative: true,
-        isBare: true,
-    } as Type;
-}
-
-array.id = crc32("array<T>{length:uint;items:[];};");
+seq.id = crc32("T[];");
 
 export function list(T: Type): Type {
-    T = bare(T);
-
     return {
         id: list.id,
         body: {
             length: uint,
-            items: typedSeq(T),
+            items: seq(bare(T)),
         },
-        T,
+        generics: [T],
         isNative: true,
         isBare: true,
     } as Type;
@@ -125,25 +116,29 @@ function binlandMapEntry(K: Type, V: Type) {
     return {
         id: binlandMapEntry.id,
         body: {
-            key: K,
-            value: V,
+            key: bare(K),
+            value: bare(V),
         },
         isNative: true,
         isBare: false,
     } as Type;
 }
 
-binlandMapEntry.id = crc32("mapEntry<K,V>{key:K;value:V;};");
+binlandMapEntry.id = crc32("Map.Entry<K,V>{key:K;value:V;};");
 
 export function binlandMap(K: Type, V: Type) {
     return {
         id: binlandMap.id,
         body: {
-            entries: list(binlandMapEntry(K, V)),
+            entries: list(binlandMapEntry(bare(K), bare(V))),
         },
         isNative: true,
         isBare: false,
     } as Type;
 }
 
-binlandMap.id = crc32("map<K,V>{entries:list<mapEntry<K,V>>;};");
+binlandMap.id = crc32("Map<K,V>{entries:list<mapEntry<!K,!V>>;};");
+
+export function getTypeById(id: number): Type {
+    return {} as Type;
+}
