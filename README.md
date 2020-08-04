@@ -116,6 +116,8 @@ type Map<K, V> {
     length: uint;
     entries: !Map.Entry[];
 };
+
+type bytes = byte[];
 ```
 
 ### Functions
