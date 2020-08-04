@@ -67,7 +67,7 @@ native list<T> {
 ```
 
 #### Type aliases:
-You can easily alias a type using this syntax:
+You can easily alias a type using the following syntax:
 ```
 type TYPE_NAME = [...TYPE_NAME| ];
 ```
@@ -77,20 +77,19 @@ type Collection = List | Array; // `Collection` can be either `List` or `Array`
 ```
 
 #### Boxed types:
-Every (excluding `T`) native type has a "boxed" equivalent. It is recommended to never use them.
+Some of native types have a "boxed" equivalents. It is recommended to never use them.
 
 ```
 type Int = int;
 type Uint = uint;
 type Float = float;
 type String = string;
-type Byte = byte;
 type Bool = bool;
 ```
 
 #### Custom types:
 
-You can define your own type by using this syntax:
+You can define your own type by using the following syntax:
 ```
 type TYPE_NAME?<[...T, ]> ?{
     [...PARAM_NAME: T;]
