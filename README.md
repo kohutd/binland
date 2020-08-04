@@ -50,7 +50,7 @@ native T[]; // sequence of T
 native seq = [];
 native typedSeq<T> = T[];
 
-native bytes = {
+native bytes {
     length: uint;
     data: byte[];
 };
@@ -120,7 +120,7 @@ type MapEntry<K, V> {
 };
 
 type Map<K, V> {
-    entries: list<MapEntry>;
+    entries: list<MapEntry<K, V>>;
 };
 ```
 
