@@ -60,7 +60,7 @@ type Array = Vector | Sequence; // `Array` can be either `Vector` or `Sequense`
 ```
 
 #### Boxed types:
-Every (excluding `native T[];`) native type has a "boxed" equivalent. It is recommended to never use them.
+Every (excluding `T`) native type has a "boxed" equivalent. It is recommended to never use them.
 
 ```
 type Int = int;
@@ -107,7 +107,15 @@ type Sequence {
     items: T[];
 };
 
-type Array = Vector | Sequence;
+type Map.Entry<K, V> {
+    key: !K;
+    value: !V;
+};
+
+type Map<K, V> {
+    length: uint;
+    entries: !Map.Entry[];
+};
 ```
 
 ### Functions
