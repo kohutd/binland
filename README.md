@@ -29,7 +29,7 @@ type Apple; // this is a declaration of a Type
 Every type excluding native have a unique identifier generated using CRC32 of its declaration without the word "type" and with removed whitespaces.
 
 ```
-crc32("Vector<!T>{length:uint;items:!T[];};")
+crc32("Vector<T>{length:uint;items:!T[];};")
 ```
 
 #### Native types:
@@ -67,7 +67,7 @@ native list<T> {
 ```
 
 #### Type aliases:
-You can easily alias you type using this syntax:
+You can easily alias a type using this syntax:
 ```
 type TYPE_NAME = [...TYPE_NAME| ];
 ```
