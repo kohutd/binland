@@ -47,6 +47,10 @@ native T[]; // sequence of T
 native !T[]; // sequence of !T
 
 native bool = byte;
+native bytes {
+    length: uint;
+    data: byte[];
+};
 ```
 
 #### Type aliases:
@@ -116,8 +120,6 @@ type Map<K, V> {
     length: uint;
     entries: !Map.Entry[];
 };
-
-type bytes = byte[];
 ```
 
 ### Functions
