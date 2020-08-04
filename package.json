@@ -1,0 +1,43 @@
+{
+  "name": "binland",
+  "version": "0.0.1",
+  "description": "Binary serialization and deserialization language.",
+  "author": "Davyd Kohut",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/**/*"
+  ],
+  "keywords": [
+    "binary",
+    "serialization"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kohutd/binland"
+  },
+  "bugs": {
+    "url": "https://github.com/kohutd/binland/issues"
+  },
+  "scripts": {
+    "build": "rm -rf lib && tsc",
+    "start": "rm -rf lib && tsc && node ./lib/index.js",
+    "dev": "ts-node-dev --respawn ./src/index.ts",
+    "test": "jest --config jestconfig.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test",
+    "version": "git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.1.4",
+    "jest": "^25.1.0",
+    "ts-jest": "^25.2.1",
+    "ts-node-dev": "^1.0.0-pre.56",
+    "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "buffer": "^5.5.0"
+  }
+}
